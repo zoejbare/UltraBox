@@ -1,0 +1,4 @@
+{
+	"buildEnvPath": "${workspaceFolder}/_venv",
+	"outputRootPath": "${workspaceFolder}/output"
+}

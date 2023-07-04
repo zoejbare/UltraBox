@@ -1,0 +1,725 @@
+{
+	// See https://go.microsoft.com/fwlink/?LinkId=733558
+	// for the documentation about the tasks.json format
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Setup Build Environment",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": [],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "python3",
+			"args": ["setup-build-env.py"],
+			"windows":{
+				"command": "python.exe"
+			}
+		},
+
+
+		// N64 build tasks
+		{
+			"label": "Build [n64/debug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "debug", "-o", "n64"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Build [n64/fastdebug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "fastdebug", "-o", "n64"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Build [n64/release]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "release", "-o", "n64"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Rebuild [n64/debug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "debug", "-o", "n64", "-r"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Rebuild [n64/fastdebug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "fastdebug", "-o", "n64", "-r"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Rebuild [n64/release]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "release", "-o", "n64", "-r"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Clean [n64/debug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "debug", "-o", "n64", "-c"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Clean [n64/fastdebug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "fastdebug", "-o", "n64", "-c"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Clean [n64/release]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "release", "-o", "n64", "-c"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+
+
+
+		// MSVC build tasks
+		{
+			"label": "Build [msvc/debug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$msCompile"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "debug", "-o", "msvc"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Build [msvc/fastdebug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$msCompile"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "fastdebug", "-o", "msvc"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Build [msvc/release]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$msCompile"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "release", "-o", "msvc"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Rebuild [msvc/debug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$msCompile"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "debug", "-o", "msvc", "-r"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Rebuild [msvc/fastdebug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$msCompile"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "fastdebug", "-o", "msvc", "-r"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Rebuild [msvc/release]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$msCompile"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "release", "-o", "msvc", "-r"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Clean [msvc/debug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$msCompile"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "debug", "-o", "msvc", "-c"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Clean [msvc/fastdebug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$msCompile"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "fastdebug", "-o", "msvc", "-c"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Clean [msvc/release]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$msCompile"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "release", "-o", "msvc", "-c"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+
+
+
+		// GCC build tasks
+		{
+			"label": "Build [gcc/debug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "debug", "-o", "gcc"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Build [gcc/fastdebug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "fastdebug", "-o", "gcc"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Build [gcc/release]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "release", "-o", "gcc"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Rebuild [gcc/debug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "debug", "-o", "gcc", "-r"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Rebuild [gcc/fastdebug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "fastdebug", "-o", "gcc", "-r"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Rebuild [gcc/release]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "release", "-o", "gcc", "-r"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Clean [gcc/debug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "debug", "-o", "gcc", "-c"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Clean [gcc/fastdebug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "fastdebug", "-o", "gcc", "-c"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Clean [gcc/release]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "release", "-o", "gcc", "-c"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+
+
+
+		// Clang build tasks
+		{
+			"label": "Build [clang/debug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "debug", "-o", "clang"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Build [clang/fastdebug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "fastdebug", "-o", "clang"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Build [clang/release]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "release", "-o", "clang"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Rebuild [clang/debug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "debug", "-o", "clang", "-r"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Rebuild [clang/fastdebug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "fastdebug", "-o", "clang", "-r"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Rebuild [clang/release]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "release", "-o", "clang", "-r"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Clean [clang/debug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "debug", "-o", "clang", "-c"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Clean [clang/fastdebug]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "fastdebug", "-o", "clang", "-c"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		},
+		{
+			"label": "Clean [clang/release]",
+			"type": "shell",
+			"group": "build",
+			"problemMatcher": ["$gcc"],
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "shared",
+				"showReuseMessage": true,
+				"clear": true
+			},
+			"command": "${config:buildEnvPath}/bin/python",
+			"args": ["make.py", "-t", "release", "-o", "clang", "-c"],
+			"windows":{
+				"command": "${config:buildEnvPath}/Scripts/python.exe",
+			}
+		}
+	]
+}

@@ -1,0 +1,6 @@
+.csbuild/*
+.idea/*
+**/__pycache__/*
+_*/*
+output/*
+toolchain/*

@@ -1,0 +1,6 @@
+[submodule "external/cxxopts"]
+	path = external/cxxopts
+	url = https://github.com/jarro2783/cxxopts.git
+[submodule "external/csbuild2"]
+	path = external/csbuild2
+	url = https://github.com/SleepingCatGames/csbuild2.git
