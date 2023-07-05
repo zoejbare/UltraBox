@@ -59,6 +59,7 @@ class _GnuArchive(_Archive):
 
 class _CachePath(object):
 	Build = None
+	Dependencies = None
 	Download = None
 	Log = None
 	Staging = None
@@ -85,6 +86,8 @@ _MINGW32_MACHINE_SPEC = "x86_64-w64-mingw32"
 _INVALID_ARCHIVE = None # type: _Archive
 _INVALID_GNU_ARCHIVE = None # type: _GnuArchive
 
+_SED_ARCHIVE = _INVALID_GNU_ARCHIVE # type: _GnuArchive
+_TEXINFO_ARCHIVE = _INVALID_GNU_ARCHIVE # type: _GnuArchive
 _BIN_UTILS_ARCHIVE = _INVALID_GNU_ARCHIVE # type: _GnuArchive
 _GMP_ARCHIVE = _INVALID_GNU_ARCHIVE # type: _GnuArchive
 _MPC_ARCHIVE = _INVALID_GNU_ARCHIVE # type: _GnuArchive
@@ -113,9 +116,10 @@ def buildToolchain():
 
 	# Build the cache paths.
 	_CachePath.Build = os.path.join(config.cachePath, "build")
-	_CachePath.Download = os.path.join(config.cachePath, "download")
+	_CachePath.Dependencies = os.path.join(config.cachePath, "deps")
+	_CachePath.Download = os.path.join(config.cachePath, "dl")
 	_CachePath.Log = os.path.join(config.cachePath, "log")
-	_CachePath.Staging = os.path.join(config.cachePath, "staging")
+	_CachePath.Staging = os.path.join(config.cachePath, "stg")
 	_CachePath.UnpackToken = os.path.join(unpackRootPath, "tok")
 	_CachePath.UnpackArchive = os.path.join(unpackRootPath, "arc")
 
@@ -134,8 +138,10 @@ def buildToolchain():
 	_warmUp()
 	_download()
 	_unpack()
+	_buildDependencies(_CachePath.Dependencies)
 
-	env = _handleSysRootBuild(None, hostSysRootPath, _BuildType.Host, config.windowsCrossCompile)
+	env = _getEnvWithDeps(_CachePath.Dependencies)
+	env = _handleSysRootBuild(env, hostSysRootPath, _BuildType.Host, config.windowsCrossCompile)
 
 	if config.windowsCrossCompile:
 		# Create a new environment with both sysroot paths since the Windows build
@@ -170,12 +176,24 @@ def _writeZipFile(outputFilePath, allFilePaths):
 		for filePath in clint.textui.progress.bar(allFilePaths, expected_size=fileCount):
 			f.write(filePath)
 
+def _getEnvWithDeps(depInstallPath):
+	env = dict(os.environ)
+
+	# Split the environment path and add dependencies install path to the start.
+	envPath = env.get("PATH", "").split(":")
+	envPath.insert(0, os.path.join(depInstallPath, "bin"))
+
+	# Reform the path in the environment.
+	env["PATH"] = ":".join(envPath)
+
+	return env
+
 def _getEnvWithSysRoot(env, sysRootPath):
 	env = dict(env if env else os.environ)
 
-	# Split the environment path and add sysroot/bin to the end.
+	# Split the environment path and add sysroot/bin to the start.
 	envPath = env.get("PATH", "").split(":")
-	envPath.append(os.path.join(sysRootPath, "bin"))
+	envPath.insert(0, os.path.join(sysRootPath, "bin"))
 
 	# Reform the path in the environment.
 	env["PATH"] = ":".join(envPath)
@@ -206,6 +224,8 @@ def _getStreamWriter(stream):
 	return functools.partial(print, file=stream, end="")
 
 def _warmUp():
+	global _SED_ARCHIVE
+	global _TEXINFO_ARCHIVE
 	global _BIN_UTILS_ARCHIVE
 	global _GMP_ARCHIVE
 	global _MPC_ARCHIVE
@@ -215,6 +235,24 @@ def _warmUp():
 	global _N64_SDK_ARCHIVE
 
 	log.info("*** Warming up ***")
+
+	_SED_ARCHIVE = _GnuArchive(
+		_CachePath.Download,
+		_CachePath.UnpackToken,
+		os.path.join(_CachePath.UnpackArchive, "sed"),
+		"sed",
+		"4.9",
+		lambda name, version: f"https://ftp.gnu.org/gnu/{name}/{name}-{version}.tar.xz"
+	)
+
+	_TEXINFO_ARCHIVE = _GnuArchive(
+		_CachePath.Download,
+		_CachePath.UnpackToken,
+		os.path.join(_CachePath.UnpackArchive, "texinfo"),
+		"texinfo",
+		"7.0.3",
+		lambda name, version: f"https://ftp.gnu.org/gnu/{name}/{name}-{version}.tar.xz"
+	)
 
 	_BIN_UTILS_ARCHIVE = _GnuArchive(
 		_CachePath.Download,
@@ -290,6 +328,7 @@ def _warmUp():
 
 	_cleanPath(_CachePath.Log)
 	_cleanPath(_CachePath.Build)
+	_cleanPath(_CachePath.Dependencies)
 	_cleanPath(_CachePath.Staging)
 
 	_cleanPath(config.installPath)
@@ -303,6 +342,8 @@ def _download():
 
 	config = Config.getInstance()
 
+	_SED_ARCHIVE.download(config.forceDownload)
+	_TEXINFO_ARCHIVE.download(config.forceDownload)
 	_BIN_UTILS_ARCHIVE.download(config.forceDownload)
 	_GMP_ARCHIVE.download(config.forceDownload)
 	_MPC_ARCHIVE.download(config.forceDownload)
@@ -314,6 +355,8 @@ def _download():
 def _unpack():
 	log.info("--- Unpacking archives ---")
 
+	_SED_ARCHIVE.unpack()
+	_TEXINFO_ARCHIVE.unpack()
 	_BIN_UTILS_ARCHIVE.unpack()
 	_GMP_ARCHIVE.unpack()
 	_MPC_ARCHIVE.unpack()
@@ -322,6 +365,14 @@ def _unpack():
 	_NEWLIB_ARCHIVE.unpack()
 
 	_N64_SDK_ARCHIVE.unpack()
+
+def _buildDependencies(depInstallPath):
+	log.info("*** Building dependencies ***")
+
+	buildInfo = _BuildInfo(None, depInstallPath, _BuildType.Host)
+
+	_buildSed(buildInfo)
+	_buildTexInfo(buildInfo)
 
 def _handleSysRootBuild(env, outputSysRootPath, buildType, minimalBuild):
 	log.info("*** Performing {}{} build ***".format(
@@ -437,6 +488,50 @@ def _findConfigureFile(rootPath):
 
 	assert configureFilePath, f"Unable to find 'configure' file anywhere in root path: {rootPath}"
 	return configureFilePath
+
+def _buildSed(buildInfo):
+	packageName = "sed"
+	configurePath = _findConfigureFile(_SED_ARCHIVE.unpackRootPath)
+	buildPath = os.path.join(_CachePath.Build, packageName)
+	logPath = os.path.join(_CachePath.Log, packageName)
+
+	# Create the output paths.
+	os.makedirs(buildPath, exist_ok=True)
+	os.makedirs(logPath, exist_ok=True)
+
+	with changeDirectory(buildPath):
+		args = [
+			os.path.relpath(configurePath, buildPath),
+			f"--prefix={buildInfo.prefixPath}"
+		]
+
+		_printPackageBuildHeader(packageName, buildInfo.buildType)
+
+		_configurePackage(packageName, buildInfo.env, logPath, args)
+		_buildPackage(packageName, buildInfo.env, logPath)
+		_installPackage(packageName, buildInfo.env, logPath, buildInfo.prefixPath)
+
+def _buildTexInfo(buildInfo):
+	packageName = "texinfo"
+	configurePath = _findConfigureFile(_TEXINFO_ARCHIVE.unpackRootPath)
+	buildPath = os.path.join(_CachePath.Build, packageName)
+	logPath = os.path.join(_CachePath.Log, packageName)
+
+	# Create the output paths.
+	os.makedirs(buildPath, exist_ok=True)
+	os.makedirs(logPath, exist_ok=True)
+
+	with changeDirectory(buildPath):
+		args = [
+			os.path.relpath(configurePath, buildPath),
+			f"--prefix={buildInfo.prefixPath}"
+		]
+
+		_printPackageBuildHeader(packageName, buildInfo.buildType)
+
+		_configurePackage(packageName, buildInfo.env, logPath, args)
+		_buildPackage(packageName, buildInfo.env, logPath)
+		_installPackage(packageName, buildInfo.env, logPath, buildInfo.prefixPath)
 
 def _buildBinUtils(buildInfo):
 	config = Config.getInstance()
