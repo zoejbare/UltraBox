@@ -155,7 +155,7 @@ class N64RomBuilder(N64BaseTool):
 		if self._n64RomVersion > 255:
 			log.Warn(f"ROM version exceeds 255: {self._n64RomVersion}")
 
-		self._n64BootCodeFile = os.path.normpath(f"{_THIS_PATH}/bootcode/{self._n64BootCodeId}CIC.bin")
+		self._n64BootCodeFile = os.path.normpath(f"{_THIS_PATH}/bootcode/{self._n64BootCodeId}CIC.BIN")
 		assert os.access(self._n64BootCodeFile, os.F_OK), f"Cannot find N64 bootcode file: {self._n64BootCodeFile}"
 
 	def Run(self, inputProject, inputFile):
