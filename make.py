@@ -51,18 +51,18 @@ from n64_cpp_compiler import N64CppCompiler
 from n64_linker import N64Linker
 from n64_rom_builder import N64RomBuilder
 
-def _createCheckers(inputMappings):
+def _createCheckers(mappings):
 	checkers = {}
 
-	for checkerObj, extensions in inputMappings.items():
-		for ext in extensions:
-			checkers[ext] = checkerObj
+	for checkerType, toolType in mappings.items():
+		for ext in toolType.inputFiles:
+			checkers[ext] = checkerType(toolType)
 
 	return checkers
 
 checkers = _createCheckers({
-	CppCompileChecker(N64CppCompiler): N64CppCompiler.inputFiles,
-	AsmCompileChecker(N64Assembler):   N64Assembler.inputFiles,
+	CppCompileChecker: N64CppCompiler,
+	AsmCompileChecker: N64Assembler,
 })
 
 # Register the N64 toolchain so we can make builds that target the platform.
@@ -194,7 +194,7 @@ def onGlobalPostBuild(projects):
 
 class UltraBoxEngine(object):
 	projectName = "UltraBoxEngine"
-	outputName = "ultra_box"
+	outputName = "libultrabox"
 	path = f"{_REPO_ROOT_PATH}/engine"
 
 with csbuild.Project(UltraBoxEngine.projectName, UltraBoxEngine.path):
@@ -236,20 +236,43 @@ class External(object):
 
 ###################################################################################################
 
-class ExtCxxOpts(object):
+class ExtLibCxxOpts(object):
 	projectName = "ExtStub_cxxopts"
 	path = f"{External.rootPath}/cxxopts"
 
-with csbuild.Project(ExtCxxOpts.projectName, ExtCxxOpts.path, autoDiscoverSourceFiles=False):
+with csbuild.Project(ExtLibCxxOpts.projectName, ExtLibCxxOpts.path, autoDiscoverSourceFiles=False):
 	csbuild.SetOutput("{name}", csbuild.ProjectType.Stub)
+	csbuild.SetSupportedToolchains("msvc", "gcc", "clang")
+
+	if csbuild.GetRunMode() == csbuild.RunMode.GenerateSolution:
+		csbuild.AddSourceFiles(f"{ExtLibCxxOpts.path}/include/*.hpp")
 
 	with csbuild.Scope(csbuild.ScopeDef.Children):
-		csbuild.AddIncludeDirectories(f"{ExtCxxOpts.path}/include")
+		csbuild.AddIncludeDirectories(f"{ExtLibCxxOpts.path}/include")
 
 ###################################################################################################
 
 class Tool(object):
 	rootPath = f"{_REPO_ROOT_PATH}/tools"
+
+	@staticmethod
+	def commonSetup(outputName):
+		csbuild.SetOutput(outputName, csbuild.ProjectType.Application)
+		csbuild.SetSupportedToolchains("msvc", "gcc", "clang")
+
+		with csbuild.Toolchain("msvc"):
+			csbuild.SetMsvcSubsystem("CONSOLE")
+
+###################################################################################################
+
+class LibToolCommon(object):
+	projectName = "LibToolCommon"
+	outputName = "libtoolcommon"
+	path = f"{Tool.rootPath}/common"
+
+with csbuild.Project(LibToolCommon.projectName, LibToolCommon.path):
+	csbuild.SetOutput(LibToolCommon.outputName, csbuild.ProjectType.StaticLibrary)
+	csbuild.SetSupportedToolchains("msvc", "gcc", "clang")
 
 ###################################################################################################
 
@@ -258,38 +281,46 @@ class MaskRom64(object):
 	outputName = "maskrom64"
 	path = f"{Tool.rootPath}/maskrom64"
 	dependencies = [
-		ExtCxxOpts.projectName,
+		ExtLibCxxOpts.projectName,
+		LibToolCommon.projectName,
 	]
 
 with csbuild.Project(MaskRom64.projectName, MaskRom64.path, MaskRom64.dependencies):
-	csbuild.SetOutput(MaskRom64.outputName, csbuild.ProjectType.Application)
-	csbuild.SetSupportedToolchains("msvc", "gcc", "clang")
-
-	with csbuild.Toolchain("msvc"):
-		csbuild.SetMsvcSubsystem("CONSOLE")
+	Tool.commonSetup(MaskRom64.outputName)
 
 ###################################################################################################
 
 class Game(object):
 	rootPath = f"{_REPO_ROOT_PATH}/games"
 
+	@staticmethod
+	def commonSetup(outputName, gameTitle, gameCode, romVersion):
+		csbuild.SetOutput(outputName, csbuild.ProjectType.Application)
+		csbuild.SetSupportedToolchains("n64")
+
+		csbuild.SetN64GameTitle(gameTitle)
+		csbuild.SetN64GameCode(gameCode)
+		csbuild.SetN64RomVersion(romVersion)
+
 ###################################################################################################
 
 class UltraBoxTemplate(object):
 	projectName = "UltraBoxTemplate"
 	outputName = "template"
+	gameTitle = "UltraBox Template"
+	gameCode = "NT0A"
+	romVersion = 0
 	path = f"{Game.rootPath}/template"
 	dependencies = [
 		UltraBoxEngine.projectName,
 	]
 
 with csbuild.Project(UltraBoxTemplate.projectName, UltraBoxTemplate.path, UltraBoxTemplate.dependencies):
-	csbuild.SetOutput(UltraBoxTemplate.outputName, csbuild.ProjectType.Application)
-	csbuild.SetSupportedToolchains("n64")
-
-	csbuild.SetN64GameTitle("UltraBox Template")
-	csbuild.SetN64GameCode("NT0A")
-	csbuild.SetN64RomVersion(0)
+	Game.commonSetup(
+		UltraBoxTemplate.outputName,
+		UltraBoxTemplate.gameTitle,
+		UltraBoxTemplate.gameCode,
+		UltraBoxTemplate.romVersion)
 
 	csbuild.AddDefines(
 		#"_DISPLAY_HIRES",

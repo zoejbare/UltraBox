@@ -16,12 +16,13 @@
 // IN THE SOFTWARE.
 //
 
+#include "../common/log.hpp"
+
 #include <assert.h>
 #include <locale.h>
 #include <inttypes.h>
 #include <memory.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 #include <functional>
@@ -63,17 +64,6 @@
 
 //----------------------------------------------------------------------------------------------------------------------
 
-enum class LogLevel
-{
-	Quiet,
-	Normal,
-	Verbose,
-};
-
-static LogLevel logLevel = LogLevel::Normal;
-
-//----------------------------------------------------------------------------------------------------------------------
-
 typedef std::unique_ptr<uint8_t[]> FileData;
 
 struct FileBuffer
@@ -81,20 +71,6 @@ struct FileBuffer
 	FileData data;
 	size_t length;
 };
-
-//----------------------------------------------------------------------------------------------------------------------
-
-#define LOG_ERROR(msg) fprintf(stderr, "[ERROR] " msg "\n")
-#define LOG_ERROR_FMT(fmt, ...) fprintf(stderr, "[ERROR] " fmt "\n", __VA_ARGS__)
-
-#define LOG_WARN(msg) fprintf(stderr, "[WARNING] " msg "\n")
-#define LOG_WARN_FMT(fmt, ...) fprintf(stderr, "[WARNING] " fmt "\n", __VA_ARGS__)
-
-#define LOG_INFO(msg) if(logLevel != LogLevel::Quiet) { fprintf(stdout, msg "\n"); }
-#define LOG_INFO_FMT(fmt, ...) if(logLevel != LogLevel::Quiet) { fprintf(stdout, fmt "\n", __VA_ARGS__); }
-
-#define LOG_VERBOSE(msg) if(logLevel == LogLevel::Verbose) { fprintf(stdout, msg "\n"); }
-#define LOG_VERBOSE_FMT(fmt, ...) if(logLevel == LogLevel::Verbose) { fprintf(stdout, fmt "\n", __VA_ARGS__); }
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -254,6 +230,11 @@ bool ProcessRom(
 	constexpr uint32_t cic6103 = 0xA3886759;
 	constexpr uint32_t cic6105 = 0xDF26F436;
 	constexpr uint32_t cic6106 = 0x1FEA617A;
+
+	assert(inputFilePath.size() > 0);
+	assert(outputFilePath.size() > 0);
+	assert(bootCodeFilePath.size() > 0);
+	assert(gameCode.size() > 0);
 
 	FileBuffer bootCodeFile;
 	FileBuffer romFile;
@@ -474,6 +455,16 @@ int main(int argc, char* argv[])
 		return APP_EXIT_SUCCESS;
 	}
 
+	// Get the logging options.
+	const bool quietLogging = (args.count("quiet") > 0);
+	const bool verboseLogging = (args.count("verbose") > 0);
+
+	// Show a warning if "-q" and "-v" have been used together.
+	if(quietLogging && verboseLogging)
+	{
+		LOG_WARN("Quiet logging and verbose logging are both enabled; verbose logging will be selected");
+	}
+
 	// Check for the <input_file> argument.
 	if(args.count("input_file") == 0)
 	{
@@ -506,10 +497,10 @@ int main(int argc, char* argv[])
 		outputFilePath = inputFilePath;
 	}
 
-	// Check for the "-bootcode" argument.
+	// Check for the "--bootcode" argument.
 	if(args.count("bootcode") == 0)
 	{
-		LOG_ERROR("Missing required argument: bootcode");
+		LOG_ERROR("Missing required argument: --bootcode");
 		return APP_EXIT_FAILURE;
 	}
 
@@ -521,10 +512,10 @@ int main(int argc, char* argv[])
 		return APP_EXIT_FAILURE;
 	}
 
-	// Check for the "-id" argument.
+	// Check for the "--id" argument.
 	if(args.count("id") == 0)
 	{
-		LOG_ERROR("Missing required argument: id");
+		LOG_ERROR("Missing required argument: --id");
 		return APP_EXIT_FAILURE;
 	}
 
@@ -545,18 +536,8 @@ int main(int argc, char* argv[])
 		return APP_EXIT_FAILURE;
 	}
 
-	// Get the logging options.
-	const bool quietLogging = (args.count("quiet") > 0);
-	const bool verboseLogging = (args.count("verbose") > 0);
-
-	// Show a warning if "-q" and "-v" have been used together.
-	if(quietLogging && verboseLogging)
-	{
-		LOG_WARN("Quiet logging and verbose logging are both enabled; verbose logging will be selected");
-	}
-
 	// Set the log level based on the selected logging options.
-	logLevel = verboseLogging
+	gLogLevel = verboseLogging
 		? LogLevel::Verbose
 		: quietLogging
 			? LogLevel::Quiet
