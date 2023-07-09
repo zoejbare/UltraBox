@@ -18,7 +18,6 @@
 #
 
 import os
-import platform
 import subprocess
 import sys
 
