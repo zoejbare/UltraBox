@@ -252,8 +252,24 @@ with csbuild.Project(ExtLibCxxOpts.projectName, ExtLibCxxOpts.path, autoDiscover
 
 ###################################################################################################
 
+class ExtLibLightningJson(object):
+	projectName = "ExtStub_LightningJSON"
+	path = f"{External.rootPath}/LightningJSON"
+
+with csbuild.Project(ExtLibLightningJson.projectName, ExtLibLightningJson.path, autoDiscoverSourceFiles=False):
+	csbuild.SetOutput("{name}", csbuild.ProjectType.Stub)
+	csbuild.SetSupportedToolchains("msvc", "gcc", "clang")
+
+	if csbuild.GetRunMode() == csbuild.RunMode.GenerateSolution:
+		csbuild.AddSourceDirectories(f"{ExtLibLightningJson.path}/include")
+
+	with csbuild.Scope(csbuild.ScopeDef.Children):
+		csbuild.AddIncludeDirectories(f"{ExtLibLightningJson.path}/include")
+
+###################################################################################################
+
 class Tool(object):
-	rootPath = f"{_REPO_ROOT_PATH}/tools"
+	rootPath = f"{_REPO_ROOT_PATH}/tools/native"
 
 	@staticmethod
 	def commonSetup(outputName):
@@ -287,6 +303,21 @@ class MaskRom64(object):
 
 with csbuild.Project(MaskRom64.projectName, MaskRom64.path, MaskRom64.dependencies):
 	Tool.commonSetup(MaskRom64.outputName)
+
+###################################################################################################
+
+class UbxPipeline(object):
+	projectName = "UbxPipeline"
+	outputName = "ubxpipeline"
+	path = f"{Tool.rootPath}/ubxpipeline"
+	dependencies = [
+		ExtLibCxxOpts.projectName,
+		ExtLibLightningJson.projectName,
+		LibToolCommon.projectName,
+	]
+
+with csbuild.Project(UbxPipeline.projectName, UbxPipeline.path, UbxPipeline.dependencies):
+	Tool.commonSetup(UbxPipeline.outputName)
 
 ###################################################################################################
 
