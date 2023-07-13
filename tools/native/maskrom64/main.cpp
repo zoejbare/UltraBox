@@ -17,6 +17,7 @@
 //
 
 #include "../common/log.hpp"
+#include "../common/tool_build.hpp"
 
 #include <assert.h>
 #include <locale.h>
@@ -40,27 +41,10 @@
 
 #define APP_VERSION_MAJOR 1
 #define APP_VERSION_MINOR 0
-#define APP_VERSION_FIX   0
+#define APP_VERSION_PATCH 0
 
 #define DEFAULT_ROM_VERSION 0
 #define DEFAULT_GAME_CODE "N00A"
-
-//----------------------------------------------------------------------------------------------------------------------
-
-#if defined(__LITTLE_ENDIAN__) || defined(__ARMEL__) || defined(__THUMBEL__) || defined(__AARCH64EL__) || defined(_MIPSEL) \
-	|| defined(__MIPSEL) || defined(__MIPSEL__) || (defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)) \
-	|| (defined(__FLOAT_WORD_ORDER__) && (__FLOAT_WORD_ORDER__ == __ORDER_LITTLE_ENDIAN__)) || defined(_WIN32)
-	#define PLATFORM_LITTLE_ENDIAN
-
-#elif defined(__BIG_ENDIAN__) || defined(__ARMEB__) || defined(__THUMBEB__) || defined(__AARCH64EB__) || defined(_MIPSEB) \
-	|| defined(__MIPSEB) || defined(__MIPSEB__) || (defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)) \
-	|| (defined(__FLOAT_WORD_ORDER__) && (__FLOAT_WORD_ORDER__ == __ORDER_BIG_ENDIAN__)) || defined(_M_PPCBE)
-	#define PLATFORM_BIG_ENDIAN
-
-#else
-	#error Unknown platform endianness
-
-#endif
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -416,7 +400,7 @@ int main(int argc, char* argv[])
 #endif
 
 	cxxopts::Options options(
-#if defined(HQ_PLATFORM_WINDOWS)
+#if defined(_WIN32)
 		"maskrom64.exe",
 #else
 		"maskrom64",
@@ -464,6 +448,13 @@ int main(int argc, char* argv[])
 	{
 		LOG_WARN("Quiet logging and verbose logging are both enabled; verbose logging will be selected");
 	}
+
+	// Set the log level based on the selected logging options.
+	gLogLevel = verboseLogging
+		? LogLevel::Verbose
+		: quietLogging
+			? LogLevel::Quiet
+			: LogLevel::Normal;
 
 	// Check for the <input_file> argument.
 	if(args.count("input_file") == 0)
@@ -536,14 +527,7 @@ int main(int argc, char* argv[])
 		return APP_EXIT_FAILURE;
 	}
 
-	// Set the log level based on the selected logging options.
-	gLogLevel = verboseLogging
-		? LogLevel::Verbose
-		: quietLogging
-			? LogLevel::Quiet
-			: LogLevel::Normal;
-
-	LOG_INFO_FMT("MaskRom64 v%" PRIu32 ".%" PRIu32 ".%" PRIu32, APP_VERSION_MAJOR, APP_VERSION_MINOR, APP_VERSION_FIX);
+	LOG_INFO_FMT("MaskRom64 v%" PRIu32 ".%" PRIu32 ".%" PRIu32, APP_VERSION_MAJOR, APP_VERSION_MINOR, APP_VERSION_PATCH);
 
 	// Attempt to generate a CRC hash for the input ROM and patch it, along with the supplied bootcode,
 	// into the ROM data, saving the modified ROM data to the specified output file.
