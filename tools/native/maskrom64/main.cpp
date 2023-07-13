@@ -16,6 +16,7 @@
 // IN THE SOFTWARE.
 //
 
+#include "../common/file_buffer.hpp"
 #include "../common/log.hpp"
 #include "../common/tool_build.hpp"
 
@@ -29,7 +30,6 @@
 #include <functional>
 #include <string>
 #include <string_view>
-#include <memory>
 
 #define CXXOPTS_NO_RTTI
 #include <cxxopts.hpp>
@@ -45,95 +45,6 @@
 
 #define DEFAULT_ROM_VERSION 0
 #define DEFAULT_GAME_CODE "N00A"
-
-//----------------------------------------------------------------------------------------------------------------------
-
-typedef std::unique_ptr<uint8_t[]> FileData;
-
-struct FileBuffer
-{
-	FileData data;
-	size_t length;
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-
-bool ReadFileData(
-	FileBuffer& output,
-	const std::string_view& filePath,
-	const size_t minSize = 0,
-	const size_t padAlign = 0,
-	const uint8_t fillByte = 0xFF)
-{
-	// Open the file with binary read-only access.
-	FILE* const pFile = fopen(filePath.data(), "rb");
-	if(!pFile)
-	{
-		// The file could not be opened.
-		return false;
-	}
-
-	// Get the total size of the file.
-	fseek(pFile, 0, SEEK_END);
-	const size_t fileSize = ftell(pFile);
-	fseek(pFile, 0, SEEK_SET);
-
-	if(fileSize == 0)
-	{
-		// The file is empty.
-		return false;
-	}
-
-	// Determine the size of the file data buffer, padding it
-	// up to the minimum size if the file itself is too small.
-	size_t paddedFileSize = (fileSize < minSize) ? minSize : fileSize;
-
-	if(padAlign > 0)
-	{
-		// Round the padded size up to the nearest megabit.
-		paddedFileSize = (paddedFileSize + (padAlign - 1)) & ~(padAlign - 1);
-	}
-
-	// Instantiate the output file buffer.
-	output.data = std::make_unique<uint8_t[]>(paddedFileSize);
-	output.length = paddedFileSize;
-
-	if(fileSize < paddedFileSize)
-	{
-		// Fill the padded section at the end of the file buffer with some known value;
-		// what the value is doesn't matter, but the value itself will be needed for
-		// computing a deterministic CRC hash of the ROM file later.
-		memset(output.data.get() + fileSize, fillByte, paddedFileSize - fileSize);
-	}
-
-	// Read the contents of the file to the buffer.
-	const size_t elementsRead = fread(output.data.get(), fileSize, 1, pFile);
-	assert(elementsRead == 1); (void) elementsRead;
-
-	// Close the file now that we have its data in memory.
-	fclose(pFile);
-
-	return true;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-
-bool WriteFileData(const std::string_view& filePath, const FileBuffer& buffer)
-{
-	// Open the file with binary write access.
-	FILE* const pFile = fopen(filePath.data(), "wb");
-	if(!pFile)
-	{
-		// The file could not be opened.
-		return false;
-	}
-
-	// Write the buffer contents into the file.
-	fwrite(buffer.data.get(), buffer.length, 1, pFile);
-	fclose(pFile);
-
-	return true;
-}
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -224,14 +135,14 @@ bool ProcessRom(
 	FileBuffer romFile;
 
 	// Read the contents of the bootcode file to a buffer.
-	if(!ReadFileData(bootCodeFile, bootCodeFilePath))
+	if(!FileBuffer::Read(bootCodeFile, bootCodeFilePath))
 	{
 		LOG_ERROR_FMT("Failed to load bootcode file: %s", bootCodeFilePath.data());
 		return false;
 	}
 
 	// Read the contents of the input file to a padded buffer
-	if(!ReadFileData(romFile, inputFilePath, checksumEnd, oneMbitInBytes))
+	if(!FileBuffer::Read(romFile, inputFilePath, checksumEnd, oneMbitInBytes))
 	{
 		LOG_ERROR_FMT("Failed to load input file: %s", inputFilePath.data());
 		return false;
@@ -377,7 +288,7 @@ bool ProcessRom(
 	StoreUint32(romFile.data.get(), checksumOffset + 4, crc[1]);
 
 	// Write the fully patched ROM file to disk.
-	if(!WriteFileData(outputFilePath, romFile))
+	if(!FileBuffer::Write(outputFilePath, romFile))
 	{
 		LOG_ERROR_FMT("Failed to write output file: %s", outputFilePath.data());
 		return false;
