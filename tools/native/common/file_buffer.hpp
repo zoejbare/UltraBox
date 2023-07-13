@@ -33,7 +33,7 @@ struct FileBuffer
 		const std::string_view& filePath,
 		const size_t minSize = 0,
 		const size_t padAlign = 0,
-		const uint8_t fillByte = 0xFF);
+		const uint8_t fillByte = 0x0);
 	static bool Write(const std::string_view& filePath, const FileBuffer& buffer);
 
 	Data data;

@@ -102,6 +102,7 @@ bool ProcessRom(
 	const uint8_t romVersion)
 {
 	constexpr size_t oneMbitInBytes = 1024 * 1024 / 8;
+	constexpr uint8_t romFillByte = 0xFF;
 
 	constexpr size_t checksumLength = 0x00100000;
 	constexpr size_t checksumStart = 0x00001000;
@@ -142,7 +143,7 @@ bool ProcessRom(
 	}
 
 	// Read the contents of the input file to a padded buffer
-	if(!FileBuffer::Read(romFile, inputFilePath, checksumEnd, oneMbitInBytes))
+	if(!FileBuffer::Read(romFile, inputFilePath, checksumEnd, oneMbitInBytes, romFillByte))
 	{
 		LOG_ERROR_FMT("Failed to load input file: %s", inputFilePath.data());
 		return false;
