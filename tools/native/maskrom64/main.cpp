@@ -16,9 +16,9 @@
 // IN THE SOFTWARE.
 //
 
+#include "../common/build.hpp"
 #include "../common/file_buffer.hpp"
 #include "../common/log.hpp"
-#include "../common/tool_build.hpp"
 
 #include <assert.h>
 #include <locale.h>
