@@ -213,11 +213,21 @@ with csbuild.Project(UltraBoxEngine.projectName, UltraBoxEngine.path):
 			f"{ultraSdkPath}/lib",
 		)
 		csbuild.AddLibraries(
-			"gultra_rom",
-			"leo",
 			"c",
 			"gcc",
 		)
+
+		with csbuild.Target("debug", "fastdebug"):
+			csbuild.AddLibraries(
+				"gultra",
+				"leo_d",
+			)
+
+		with csbuild.Target("release"):
+			csbuild.AddLibraries(
+				"gultra_rom",
+				"leo",
+			)
 
 	with csbuild.Scope(csbuild.ScopeDef.All):
 		csbuild.AddIncludeDirectories(

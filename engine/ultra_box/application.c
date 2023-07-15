@@ -73,7 +73,10 @@ __attribute__((noreturn)) void idle(void*)
 __attribute__((noreturn)) void boot()
 {
 	/* Initialize the N64 hardware. */
-	osInitialize();
+	__osInitialize_common();
+#ifndef _FINALROM
+	__osInitialize_isv();
+#endif
 
 	/* Fill all global data objects with their default values. */
 	_UbxSystemSetDefaults();
