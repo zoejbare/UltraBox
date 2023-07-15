@@ -4,3 +4,6 @@
 [submodule "external/csbuild2"]
 	path = external/csbuild2
 	url = https://github.com/SleepingCatGames/csbuild2.git
+[submodule "external/LightningJSON"]
+	path = external/LightningJSON
+	url = https://github.com/ShadauxCat/LightningJSON.git
