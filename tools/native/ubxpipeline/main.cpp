@@ -71,18 +71,18 @@ bool ProcessManifest(const std::string_view& inputFilePath, const std::string_vi
 
 	try
 	{
-		JSONObject jsonRoot = JSONObject::FromString(string_view(reinterpret_cast<char*>(manifestFile.data.get()), manifestFile.length));
+		const JSONObject jsonRoot = JSONObject::FromString(std::string_view(reinterpret_cast<char*>(manifestFile.data.get()), manifestFile.length));
 
 		for(const auto childNode : jsonRoot)
 		{
 			// Only handle objects.
 			if(childNode.IsObject())
 			{
-				const std::string nodeName(childNode.GetKey().data(), childNode.GetKey().length());
+				const std::string_view nodeName = childNode.GetKey();
 
 				if(!childNode.HasKey(gJsonKey[JSON_KEY_TYPE]))
 				{
-					LOG_ERROR_FMT("Asset node missing '%s' field: \"%s\"", gJsonKey[JSON_KEY_TYPE], nodeName.c_str());
+					LOG_ERROR_FMT("Asset node missing '%s' field: \"%s\"", gJsonKey[JSON_KEY_TYPE], nodeName.data());
 					success = false;
 					continue;
 				}
@@ -90,7 +90,7 @@ bool ProcessManifest(const std::string_view& inputFilePath, const std::string_vi
 				JSONObject typeNode = childNode[gJsonKey[JSON_KEY_TYPE]];
 				if(!typeNode.IsString())
 				{
-					LOG_ERROR_FMT("Asset node has non-string '%s' field: \"%s\"", gJsonKey[JSON_KEY_TYPE], nodeName.c_str());
+					LOG_ERROR_FMT("Asset node has non-string '%s' field: \"%s\"", gJsonKey[JSON_KEY_TYPE], nodeName.data());
 					success = false;
 					continue;
 				}
