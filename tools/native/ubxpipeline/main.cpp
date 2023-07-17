@@ -71,6 +71,64 @@ bool ProcessManifest(const std::string_view& inputFilePath, const std::string_vi
 
 	try
 	{
+		auto validateAssetName = [](const std::string_view& name)
+		{
+			if(name[0] == '\0' || name.length() == 0)
+			{
+				LOG_ERROR("Empty asset name string");
+				return false;
+			}
+
+			auto isSymbol = [](const char c)
+			{
+				switch(c)
+				{
+					case '_':
+					case '$':
+						return true;
+
+					default:
+						return false;
+				}
+			};
+
+			auto isNumber = [](const char c)
+			{
+				return (c >= '0' && c <= '9');
+			};
+
+			auto isAlpha = [](const char c)
+			{
+				return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+			};
+
+			// Asset names will be used as variable names which cannot begin with a number.
+			if(isNumber(name[0]))
+			{
+				LOG_ERROR_FMT("Asset name cannot start with a number: \"%s\"", name.data());
+				return false;
+			}
+
+			// Continue the verification of the asset name's first character.
+			if(!isAlpha(name[0]) && !isSymbol(name[0]))
+			{
+				LOG_ERROR_FMT("Asset name must start with an ASCII character or a valid symbol ('_', '$'): \"%s\"", name.data());
+				return false;
+			}
+
+			// Validate the rest of the asset name using the default rules.
+			for(size_t i = 1; i < name.length(); ++i)
+			{
+				if(!isNumber(name[i]) && !isAlpha(name[i]) && !isSymbol(name[i]))
+				{
+					LOG_ERROR_FMT("Asset name may only contain numbers, ASCII characters, and valid symbols ('_', '$'): \"%s\"", name.data());
+					return false;
+				}
+			}
+
+			return true;
+		};
+
 		const JSONObject jsonRoot = JSONObject::FromString(std::string_view(reinterpret_cast<char*>(manifestFile.data.get()), manifestFile.length));
 
 		for(const auto childNode : jsonRoot)
@@ -79,9 +137,15 @@ bool ProcessManifest(const std::string_view& inputFilePath, const std::string_vi
 			if(childNode.IsObject())
 			{
 				const std::string_view nodeName = childNode.GetKey();
+				if(!validateAssetName(nodeName))
+				{
+					// Invalid asset name.
+					continue;
+				}
 
 				if(!childNode.HasKey(gJsonKey[JSON_KEY_TYPE]))
 				{
+					// Asset node does not specify its type.
 					LOG_ERROR_FMT("Asset node missing '%s' field: \"%s\"", gJsonKey[JSON_KEY_TYPE], nodeName.data());
 					success = false;
 					continue;
@@ -90,6 +154,7 @@ bool ProcessManifest(const std::string_view& inputFilePath, const std::string_vi
 				JSONObject typeNode = childNode[gJsonKey[JSON_KEY_TYPE]];
 				if(!typeNode.IsString())
 				{
+					// Asset node type is not a string.
 					LOG_ERROR_FMT("Asset node has non-string '%s' field: \"%s\"", gJsonKey[JSON_KEY_TYPE], nodeName.data());
 					success = false;
 					continue;
