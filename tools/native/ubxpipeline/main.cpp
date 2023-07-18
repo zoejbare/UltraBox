@@ -51,12 +51,145 @@
 
 //----------------------------------------------------------------------------------------------------------------------
 
+#ifdef _WIN32
+	#define PATH_SEP_CHR       '\\'
+	#define WRONG_PATH_SEP_CHR '/'
+#else
+	#define PATH_SEP_CHR       '/'
+	#define WRONG_PATH_SEP_CHR '\\'
+#endif
+
+//----------------------------------------------------------------------------------------------------------------------
+
+bool ValidateAssetName(const std::string_view& name)
+{
+	if(name[0] == '\0' || name.length() == 0)
+	{
+		LOG_ERROR("Empty asset name string");
+		return false;
+	}
+
+	auto isSymbol = [](const char c)
+	{
+		switch(c)
+		{
+			case '_':
+			case '$':
+				return true;
+
+			default:
+				return false;
+		}
+	};
+
+	auto isNumber = [](const char c)
+	{
+		return (c >= '0' && c <= '9');
+	};
+
+	auto isAlpha = [](const char c)
+	{
+		return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+	};
+
+	// Asset names will be used as variable names which cannot begin with a number.
+	if(isNumber(name[0]))
+	{
+		LOG_ERROR_FMT("Asset name cannot start with a number: \"%s\"", name.data());
+		return false;
+	}
+
+	// Continue the verification of the asset name's first character.
+	if(!isAlpha(name[0]) && !isSymbol(name[0]))
+	{
+		LOG_ERROR_FMT("Asset name must start with an ASCII character or a valid symbol ('_', '$'): \"%s\"", name.data());
+		return false;
+	}
+
+	// Validate the rest of the asset name using the default rules.
+	for(size_t i = 1; i < name.length(); ++i)
+	{
+		if(!isNumber(name[i]) && !isAlpha(name[i]) && !isSymbol(name[i]))
+		{
+			LOG_ERROR_FMT("Asset name may only contain numbers, ASCII characters, and valid symbols ('_', '$'): \"%s\"", name.data());
+			return false;
+		}
+	}
+
+	return true;
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+
+std::string NormalizePath(const std::string_view& path)
+{
+	std::string output(path);
+
+	for(size_t i = 0; i < output.length(); ++i)
+	{
+		if(output[i] == WRONG_PATH_SEP_CHR)
+		{
+			output[i] = PATH_SEP_CHR;
+		}
+	}
+
+	return output;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+int ResolveAssetType(const std::string_view& typeString)
+{
+	for(int i = 0; i < ASSET_TYPE__COUNT; ++i)
+	{
+		if(typeString == gAssetType[i])
+		{
+			return i;
+		}
+	}
+
+	return ASSET_TYPE__COUNT;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
+std::string JoinPath(const std::string_view& left, const std::string_view& right)
+{
+	if(left.length() == 0 || right.length() == 0)
+	{
+		return std::string();
+	}
+	else if(left.length() == 0)
+	{
+		return std::string(right);
+	}
+	else if(right.length() == 0)
+	{
+		return std::string(left);
+	}
+
+	std::string output(left);
+	output.append(1, PATH_SEP_CHR);
+	output.append(right);
+
+	return output;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+
 bool ProcessManifest(const std::string_view& inputFilePath, const std::string_view& outputRootPath)
 {
 	using namespace LightningJSON;
 
 	assert(inputFilePath.size() > 0);
 	assert(outputRootPath.size() > 0);
+
+	// Pre-calculate the asset output paths.
+	std::string outputPath[ASSET_TYPE__COUNT];
+	for(int i = 0; i < ASSET_TYPE__COUNT; ++i)
+	{
+		outputPath[i] = NormalizePath(JoinPath(outputRootPath, gOutputSubDirName[i]));
+	}
 
 	LOG_INFO_FMT("Loading asset manifest: \"%s\" ...", inputFilePath.data());
 
@@ -71,64 +204,6 @@ bool ProcessManifest(const std::string_view& inputFilePath, const std::string_vi
 
 	try
 	{
-		auto validateAssetName = [](const std::string_view& name)
-		{
-			if(name[0] == '\0' || name.length() == 0)
-			{
-				LOG_ERROR("Empty asset name string");
-				return false;
-			}
-
-			auto isSymbol = [](const char c)
-			{
-				switch(c)
-				{
-					case '_':
-					case '$':
-						return true;
-
-					default:
-						return false;
-				}
-			};
-
-			auto isNumber = [](const char c)
-			{
-				return (c >= '0' && c <= '9');
-			};
-
-			auto isAlpha = [](const char c)
-			{
-				return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
-			};
-
-			// Asset names will be used as variable names which cannot begin with a number.
-			if(isNumber(name[0]))
-			{
-				LOG_ERROR_FMT("Asset name cannot start with a number: \"%s\"", name.data());
-				return false;
-			}
-
-			// Continue the verification of the asset name's first character.
-			if(!isAlpha(name[0]) && !isSymbol(name[0]))
-			{
-				LOG_ERROR_FMT("Asset name must start with an ASCII character or a valid symbol ('_', '$'): \"%s\"", name.data());
-				return false;
-			}
-
-			// Validate the rest of the asset name using the default rules.
-			for(size_t i = 1; i < name.length(); ++i)
-			{
-				if(!isNumber(name[i]) && !isAlpha(name[i]) && !isSymbol(name[i]))
-				{
-					LOG_ERROR_FMT("Asset name may only contain numbers, ASCII characters, and valid symbols ('_', '$'): \"%s\"", name.data());
-					return false;
-				}
-			}
-
-			return true;
-		};
-
 		const JSONObject jsonRoot = JSONObject::FromString(std::string_view(reinterpret_cast<char*>(manifestFile.data.get()), manifestFile.length));
 
 		for(const auto childNode : jsonRoot)
@@ -137,7 +212,7 @@ bool ProcessManifest(const std::string_view& inputFilePath, const std::string_vi
 			if(childNode.IsObject())
 			{
 				const std::string_view nodeName = childNode.GetKey();
-				if(!validateAssetName(nodeName))
+				if(!ValidateAssetName(nodeName))
 				{
 					// Invalid asset name.
 					continue;
@@ -161,6 +236,16 @@ bool ProcessManifest(const std::string_view& inputFilePath, const std::string_vi
 				}
 
 				const std::string typeString = typeNode.AsString();
+
+				const int assetType = ResolveAssetType(typeString);
+				if(assetType == ASSET_TYPE__COUNT)
+				{
+					// The asset type is not known.
+					LOG_ERROR_FMT("Unknown asset type: \"%s\"", typeString.c_str());
+					continue;
+				}
+
+				const std::string_view assetOutputPath = outputPath[assetType];
 
 				// TODO: Use the type string to determine which type handler to use.
 			}

@@ -57,4 +57,13 @@ constexpr const char* const gAssetType[ASSET_TYPE__COUNT] =
 	"texture",   // ASSET_TYPE_TEXTURE
 };
 
+constexpr const char* const gOutputSubDirName[ASSET_TYPE__COUNT] =
+{
+	"anim",  // ASSET_TYPE_ANIMATION
+	"model", // ASSET_TYPE_MODEL
+	"music", // ASSET_TYPE_MUSIC
+	"sfx",   // ASSET_TYPE_SFX
+	"tex",   // ASSET_TYPE_TEXTURE
+};
+
 //----------------------------------------------------------------------------------------------------------------------
