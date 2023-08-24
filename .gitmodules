@@ -3,7 +3,7 @@
 	url = https://github.com/jarro2783/cxxopts.git
 [submodule "external/csbuild2"]
 	path = external/csbuild2
-	url = https://github.com/SleepingCatGames/csbuild2.git
+	url = https://github.com/zoejbare/csbuild2.git
 [submodule "external/LightningJSON"]
 	path = external/LightningJSON
 	url = https://github.com/zoejbare/LightningJSON.git
